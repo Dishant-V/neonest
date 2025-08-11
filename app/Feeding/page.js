@@ -7,6 +7,7 @@ import { Button } from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import Feedingtips from "../components/Feedingtips";
 import axios from "axios";
+import { API_BASE } from "../../lib/apiBase";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -27,16 +28,17 @@ export default function Page() {
     notes: "",
   });
 
-  useEffect(() => {
-    if (!isAuth) {
-      router.push("/Login");
-    }
-  }, []);
+  // 🚧 Temporarily disabled login redirect for testing
+  // useEffect(() => {
+  //   if (!isAuth) {
+  //     router.push("/Login");
+  //   }
+  // }, []);
 
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/feeding`, {
+        const res = await axios.get(`${API_BASE}/feeding`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -53,7 +55,7 @@ export default function Page() {
   const handleAddSchedule = async () => {
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/feeding`,
+        `${API_BASE}/feeding`,
         newSchedule,
         {
           headers: {
@@ -63,7 +65,6 @@ export default function Page() {
         }
       );
 
-      console.log(res.data)
       if (res.data.feed) {
         setSchedules((prev) => [...prev, res.data.feed]);
       }
@@ -77,7 +78,7 @@ export default function Page() {
   const handleUpdateSchedule = async (id, updatedData) => {
     try {
       await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/feeding`,
+        `${API_BASE}/feeding`,
         { feedId: id, ...updatedData },
         {
           headers: {
@@ -86,7 +87,9 @@ export default function Page() {
           },
         }
       );
-      setSchedules((prev) => prev.map((s) => (s._id === id ? { ...s, ...updatedData } : s)));
+      setSchedules((prev) =>
+        prev.map((s) => (s._id === id ? { ...s, ...updatedData } : s))
+      );
       setEditingSchedule(null);
     } catch (err) {
       console.error("Error updating feed:", err);
@@ -95,7 +98,7 @@ export default function Page() {
 
   const handleDeleteSchedule = async (id) => {
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/feeding`, {
+      await axios.delete(`${API_BASE}/feeding`, {
         params: { feedId: id },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -139,7 +142,9 @@ export default function Page() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-800">Feeding: Tips and Schedule</h2>
-          <p className="text-gray-600">Track your baby's feeding times and learn best practices.</p>
+          <p className="text-gray-600">
+            Track your baby's feeding times and learn best practices.
+          </p>
         </div>
         <Button
           onClick={() => setIsAddingSchedule(true)}
@@ -276,11 +281,20 @@ export default function Page() {
                       <Icon className="w-3 h-3 mr-1" />
                       {s.type.charAt(0).toUpperCase() + s.type.slice(1)}
                     </Badge>
-                    {s.amount && <span className="text-sm text-gray-600">{s.amount}</span>}
-                    {s.notes && <span className="text-sm text-gray-500 italic">"{s.notes}"</span>}
+                    {s.amount && (
+                      <span className="text-sm text-gray-600">{s.amount}</span>
+                    )}
+                    {s.notes && (
+                      <span className="text-sm text-gray-500 italic">
+                        "{s.notes}"
+                      </span>
+                    )}
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => setEditingSchedule(s)} className="text-sm">
+                    <Button
+                      onClick={() => setEditingSchedule(s)}
+                      className="text-sm"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
